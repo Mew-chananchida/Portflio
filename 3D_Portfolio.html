@@ -88,36 +88,30 @@
         let modelLoaded = false;
         const loadingDiv = document.getElementById('loading');
 
-        function loadModel(urls, index = 0) {
-            if (index >= urls.length) {
-                console.error('❌ ไม่สามารถโหลดโมเดลได้จากทุก URL');
-                createFallbackModel();
-                loadingDiv.textContent = '⚠️ ใช้โมเดลทดแทน (Fallback)';
-                return;
-            }
-            loader.load(
-                urls[index],
-                (gltf) => {
-                    if (!modelLoaded) {
-                        const model = gltf.scene;
-                        model.position.set(0, 0, 0);
-                        scene.add(model);
-                        modelLoaded = true;
-                        console.log('✅ โหลดโมเดลสำเร็จ!');
-                        loadingDiv.remove();
+        loader.load(
+            modelUrls[0],
+            function (gltf) {
+                const model = gltf.scene;
+                model.traverse((node) => {
+                    if (node.isMesh) {
+                        node.castShadow = true; // ✅ โมเดลสร้างเงา
+                        node.receiveShadow = true; // ✅ โมเดลรับเงา
                     }
-                },
-                (xhr) => {
-                    if (xhr.lengthComputable) {
-                        loadingDiv.textContent = `🔄 กำลังโหลด: ${(xhr.loaded / xhr.total * 100).toFixed(1)}%`;
-                    }
-                },
-                (error) => {
-                    console.error(`❌ Error loading from ${urls[index]}:`, error);
-                    loadModel(urls, index + 1); // Try next URL
+                });
+                scene.add(model);
+                model.position.set(0, 0, 0);
+                model.scale.set(1, 1, 1);
+                console.log("✅ Model loaded!");
+                modelLoaded = true;
+                if (loadingDiv) {
+                    loadingDiv.style.display = 'none';
                 }
-            );
-        }
+            },
+            undefined,
+            function (error) {
+                console.error("❌ Error loading model:", error);
+            }
+        );
         // render loop
         function animate(t) {
 
