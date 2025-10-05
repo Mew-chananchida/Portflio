@@ -16,6 +16,7 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <!-- Loaders -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/RGBELoader.js"></script>
 
     <script>
@@ -49,19 +50,10 @@
         directionalLight.castShadow = true;
         scene.add(directionalLight);
 
-        const pointLight = new THREE.PointLight(0xff000, 0.8, 8);
+        const pointLight = new THREE.PointLight(0xff0000, 0.8, 8);
         pointLight.position.set(0, 3, 1);
         pointLight.castShadow = true;
         scene.add(pointLight);
-
-        /*const spotLightR = new THREE.SpotLight(0xff000, 0.8);
-        spotLightR.angle = Math.PI / 4;
-        spotLightR.position.set(3, 2, -2);
-        spotLightR.target.position.set(3, 0, -2);
-        spotLightR.castShadow = true;
-        spotLightR.distance =5;
-        scene.add(spotLightR);
-        scene.add(spotLightR.target);*/
 
         // ✅ พื้น
         const planeGeometry = new THREE.PlaneGeometry(10, 10);
@@ -72,9 +64,9 @@
         plane.receiveShadow = true; // ✅ พื้นรับเงา
         scene.add(plane);
 
-        // ========== LOAD HDRI ENVIRONMENT ==========
+        // LOAD HDRI ENVIRONMENT 
         new THREE.RGBELoader()
-            .load("https://raw.githubusercontent.com/Mew-chananchida/Interactive_3D_Portfolio/refs/heads/main/qwantani_night_puresky_1k.hdr",
+            .load("https://raw.githubusercontent.com/Mew-chananchida/Portflio/refs/heads/main/qwantani_night_puresky_1k.hdr",
                 function (texture) {
                     texture.mapping = THREE.EquirectangularReflectionMapping;
                     scene.environment = texture;  // ใช้สำหรับ PBR material
@@ -87,7 +79,46 @@
                 }
             );
 
-        // ✅ render loop
+        // โหลดโมเดล
+        const loader = new THREE.GLTFLoader();
+        const modelUrls = [
+            'https://raw.githubusercontent.com/Mew-chananchida/Portflio/refs/heads/main/model.glb'
+        ];
+
+        let modelLoaded = false;
+        const loadingDiv = document.getElementById('loading');
+
+        function loadModel(urls, index = 0) {
+            if (index >= urls.length) {
+                console.error('❌ ไม่สามารถโหลดโมเดลได้จากทุก URL');
+                createFallbackModel();
+                loadingDiv.textContent = '⚠️ ใช้โมเดลทดแทน (Fallback)';
+                return;
+            }
+            loader.load(
+                urls[index],
+                (gltf) => {
+                    if (!modelLoaded) {
+                        const model = gltf.scene;
+                        model.position.set(0, 0, 0);
+                        scene.add(model);
+                        modelLoaded = true;
+                        console.log('✅ โหลดโมเดลสำเร็จ!');
+                        loadingDiv.remove();
+                    }
+                },
+                (xhr) => {
+                    if (xhr.lengthComputable) {
+                        loadingDiv.textContent = `🔄 กำลังโหลด: ${(xhr.loaded / xhr.total * 100).toFixed(1)}%`;
+                    }
+                },
+                (error) => {
+                    console.error(`❌ Error loading from ${urls[index]}:`, error);
+                    loadModel(urls, index + 1); // Try next URL
+                }
+            );
+        }
+        // render loop
         function animate(t) {
 
             renderer.render(scene, camera);
