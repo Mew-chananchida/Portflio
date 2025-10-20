@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8" />
     <title>Halloween Interactive</title>
@@ -11,9 +10,7 @@
             background: black;
         }
 
-        canvas {
-            display: block;
-        }
+        canvas { display: block; }
 
         #introMessage {
             position: absolute;
@@ -31,13 +28,11 @@
             max-width: 90%;
         }
 
-        #uiText,
-        #nextText,
-        #choiceButtons {
+        #uiText, #nextText, #choiceButtons {
             position: absolute;
             width: 100%;
             text-align: center;
-            font-family: 'Arial', sans‑serif;
+            font-family: 'Arial', sans-serif;
             z-index: 10;
             user-select: none;
             color: white;
@@ -45,19 +40,9 @@
             text-shadow: 2px 2px 5px black;
         }
 
-        #uiText {
-            font-size: 32px;
-            top: 30%;
-        }
-
-        #nextText {
-            font-size: 28px;
-            top: 40%;
-        }
-
-        #choiceButtons {
-            top: 60%;
-        }
+        #uiText { font-size: 32px; top: 30%; }
+        #nextText { font-size: 28px; top: 40%; }
+        #choiceButtons { top: 60%; }
 
         .btn {
             background: orange;
@@ -69,7 +54,6 @@
             cursor: pointer;
         }
 
-        /* เพิ่ม CSS สำหรับ Click Here */
         #clickHere {
             position: absolute;
             bottom: 20px;
@@ -80,7 +64,6 @@
             font-family: Arial, sans-serif;
             cursor: pointer;
             display: none;
-            /* ซ่อนก่อน จะโชว์ตอนโหลด Scene 2 */
             z-index: 30;
             text-shadow: 2px 2px 5px black;
         }
@@ -89,7 +72,6 @@
 
 <body>
     <div id="introMessage" onclick="onIntroClick()"></div>
-
     <div id="uiText"></div>
     <div id="nextText"></div>
     <div id="choiceButtons">
@@ -134,30 +116,25 @@
             point.position.set(0, 5, 0);
             scene.add(point);
 
-            // Castle
             loader.load('https://raw.githubusercontent.com/Mew-chananchida/Portflio/refs/heads/main/หน้า_1.glb',
                 gltf => { scene.add(gltf.scene); },
-                undefined,
-                err => console.error(err)
+                undefined, err => console.error(err)
             );
 
-            // Bat
             loader.load('https://raw.githubusercontent.com/Mew-chananchida/Portflio/refs/heads/main/ค้างคาว.glb',
                 gltf => {
                     bat = gltf.scene;
                     bat.scale.set(0.5, 0.5, 0.5);
                     scene.add(bat);
                 },
-                undefined,
-                err => console.error(err)
+                undefined, err => console.error(err)
             );
 
-            // Pumpkin
             loader.load('https://raw.githubusercontent.com/Mew-chananchida/Portflio/refs/heads/main/pumpkin_chicken_gun.glb',
                 gltf => {
                     pumpkin = gltf.scene;
                     pumpkin.scale.set(0.4, 0.4, 0.4);
-                    pumpkin.rotation.y = Math.PI; // หันหน้า
+                    pumpkin.rotation.y = Math.PI;
                     pumpkin.position.set(0, 1.5, 3);
                     scene.add(pumpkin);
                     if (!introShown) {
@@ -165,8 +142,7 @@
                         introShown = true;
                     }
                 },
-                undefined,
-                err => console.error(err)
+                undefined, err => console.error(err)
             );
 
             animate();
@@ -174,7 +150,6 @@
 
         function animate() {
             requestAnimationFrame(animate);
-
             if (bat) {
                 angle += speed;
                 bat.position.x = Math.cos(angle) * radius;
@@ -182,18 +157,15 @@
                 bat.position.y = 2 + Math.sin(angle * 2) * 0.3;
                 bat.rotation.y = -angle + Math.PI / 2;
             }
-
             if (pumpkin && !pumpkinClicked) {
                 pumpkin.position.y = 1.5 + Math.sin(Date.now() * 0.002) * 0.1;
             }
-
             controls.update();
             renderer.render(scene, camera);
         }
 
-        // TYPEWRITER EFFECT
         function showIntroMessage() {
-            const text = "You see that pumpkin‑headed girl over there? That's me. Click here!";
+            const text = "You see that pumpkin-headed girl over there? That's me. Click here!";
             const el = document.getElementById('introMessage');
             el.textContent = '';
             el.style.display = 'block';
@@ -213,9 +185,8 @@
         }
 
         function zoomToPumpkin() {
-            const targetPosition = new THREE.Vector3(0, 2, 6);  // <<< ซูมห่างจาก pumpkin นิดนึง
-            const lookAtTarget = new THREE.Vector3(0, 1.5, 3);  // <<< จุดที่กล้องจะมองไป (ตำแหน่งฟักทอง)
-
+            const targetPosition = new THREE.Vector3(0, 2, 6);
+            const lookAtTarget = new THREE.Vector3(0, 1.5, 3);
             const start = camera.position.clone();
             const duration = 1000;
             const startTime = performance.now();
@@ -225,9 +196,8 @@
                 camera.position.lerpVectors(start, targetPosition, t);
                 camera.lookAt(lookAtTarget);
                 renderer.render(scene, camera);
-                if (t < 1) {
-                    requestAnimationFrame(animateZoom);
-                } else {
+                if (t < 1) requestAnimationFrame(animateZoom);
+                else {
                     showTypingText("Hi!", "uiText", () => {
                         showTypingText("Do you want to know who I am?", "nextText", () => {
                             document.getElementById("choiceButtons").style.display = "block";
@@ -235,7 +205,6 @@
                     });
                 }
             }
-
             requestAnimationFrame(animateZoom);
         }
 
@@ -248,9 +217,7 @@
                 if (i < text.length) {
                     el.textContent += text.charAt(i++);
                     setTimeout(typeIt, 60);
-                } else if (callback) {
-                    callback();
-                }
+                } else if (callback) callback();
             }
             typeIt();
         }
@@ -262,27 +229,24 @@
             document.getElementById('choiceButtons').style.display = 'none';
             currentScene = 2;
 
-            const ambient = new THREE.AmbientLight(0xffffff, 2);
+            const ambient = new THREE.AmbientLight(0xffffff, 2.5);
             scene.add(ambient);
-            const spot = new THREE.SpotLight(0xffffff, 4);
+            const spot = new THREE.SpotLight(0xffffff, 5);
             spot.position.set(2, 5, 5);
             spot.angle = Math.PI / 4;
             spot.penumbra = 0.2;
             spot.castShadow = true;
             scene.add(spot);
 
-            // โหลดโมเดลหน้า 2
             loader.load('https://raw.githubusercontent.com/Mew-chananchida/Portflio/refs/heads/main/2.glb', (gltf) => {
                 const model = gltf.scene;
                 model.position.set(0, 0, 0);
                 model.scale.set(1, 1, 1);
                 scene.add(model);
-                // แสดงข้อความ Click Here
                 document.getElementById('clickHere').style.display = 'block';
             });
         }
 
-        // โหลดโมเดลชื่อและภาพ
         function loadNameModel() {
             document.getElementById('clickHere').style.display = 'none';
 
@@ -292,21 +256,33 @@
                 model.scale.set(1.2, 1.2, 1.2);
                 scene.add(model);
 
-                // เพิ่ม SpotLight เพื่อส่องชื่อ
-                const nameLight = new THREE.SpotLight(0xffffff, 3);
-                nameLight.position.set(-3, 7, 5);  // ยกขึ้นสูงและเลื่อนไปทางซ้าย
-                nameLight.angle = Math.PI / 6;
+                // 🌟 เพิ่มไฟให้สว่างมากขึ้น
+                const nameLight = new THREE.SpotLight(0xffffff, 10);
+                nameLight.position.set(-3, 10, 6);
+                nameLight.angle = Math.PI / 5;
                 nameLight.penumbra = 0.3;
                 nameLight.target = model;
                 nameLight.castShadow = true;
-
                 scene.add(nameLight);
                 scene.add(nameLight.target);
+
+                // 🌌 เพิ่มเอฟเฟกต์ Zoom ออก (กล้องถอย)
+                const startPos = camera.position.clone();
+                const endPos = new THREE.Vector3(0, 4, 14); // ถอยออก
+                const duration = 1500;
+                const startTime = performance.now();
+
+                function animateZoomOut(time) {
+                    const t = Math.min((time - startTime) / duration, 1);
+                    camera.position.lerpVectors(startPos, endPos, t);
+                    camera.lookAt(new THREE.Vector3(0, 0, 0));
+                    renderer.render(scene, camera);
+                    if (t < 1) requestAnimationFrame(animateZoomOut);
+                }
+                requestAnimationFrame(animateZoomOut);
             });
         }
 
-
-        // Responsive
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
@@ -314,5 +290,4 @@
         });
     </script>
 </body>
-
 </html>
