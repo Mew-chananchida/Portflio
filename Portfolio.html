@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Halloween Interactive</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: black;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        #introMessage {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            font-size: 20px;
+            color: yellow;
+            font-family: monospace;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 10px;
+            z-index: 20;
+            cursor: pointer;
+            display: none;
+            max-width: 90%;
+        }
+
+        #uiText,
+        #nextText,
+        #choiceButtons {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            font-family: 'Arial', sans‑serif;
+            z-index: 10;
+            user-select: none;
+            color: white;
+            display: none;
+            text-shadow: 2px 2px 5px black;
+        }
+
+        #uiText {
+            font-size: 32px;
+            top: 30%;
+        }
+
+        #nextText {
+            font-size: 28px;
+            top: 40%;
+        }
+
+        #choiceButtons {
+            top: 60%;
+        }
+
+        .btn {
+            background: orange;
+            color: black;
+            font-size: 24px;
+            padding: 10px 20px;
+            margin: 10px;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* เพิ่ม CSS สำหรับ Click Here */
+        #clickHere {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            text-align: center;
+            font-size: 28px;
+            color: yellow;
+            font-family: Arial, sans-serif;
+            cursor: pointer;
+            display: none;
+            /* ซ่อนก่อน จะโชว์ตอนโหลด Scene 2 */
+            z-index: 30;
+            text-shadow: 2px 2px 5px black;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="introMessage" onclick="onIntroClick()"></div>
+
+    <div id="uiText"></div>
+    <div id="nextText"></div>
+    <div id="choiceButtons">
+        <button class="btn" onclick="goToScene2()">Yes</button>
+    </div>
+    <div id="clickHere" onclick="loadNameModel()">Click Here</div>
+
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+
+    <script>
+        let scene, camera, renderer, controls;
+        let bat = null, pumpkin = null, pumpkinClicked = false;
+        let currentScene = 1;
+        let angle = 0;
+        const radius = 5, speed = 0.02;
+        const loader = new THREE.GLTFLoader();
+        let introShown = false;
+
+        initScene1();
+
+        function initScene1() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x000000);
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 3, 10);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+            const ambient = new THREE.AmbientLight(0xffffcc, 1.5);
+            scene.add(ambient);
+            const directional = new THREE.DirectionalLight(0xffcc66, 3);
+            directional.position.set(5, 10, 5);
+            scene.add(directional);
+            const point = new THREE.PointLight(0xffaa00, 2, 30);
+            point.position.set(0, 5, 0);
+            scene.add(point);
+
+            // Castle
+            loader.load('https://raw.githubusercontent.com/Mew-chananchida/Portflio/refs/heads/main/หน้า_1.glb',
+                gltf => { scene.add(gltf.scene); },
+                undefined,
+                err => console.error(err)
+            );
+
+            // Bat
+            loader.load('https://raw.githubusercontent.com/Mew-chananchida/Portflio/refs/heads/main/ค้างคาว.glb',
+                gltf => {
+                    bat = gltf.scene;
+                    bat.scale.set(0.5, 0.5, 0.5);
+                    scene.add(bat);
+                },
+                undefined,
+                err => console.error(err)
+            );
+
+            // Pumpkin
+            loader.load('https://raw.githubusercontent.com/Mew-chananchida/Portflio/refs/heads/main/pumpkin_chicken_gun.glb',
+                gltf => {
+                    pumpkin = gltf.scene;
+                    pumpkin.scale.set(0.4, 0.4, 0.4);
+                    pumpkin.rotation.y = Math.PI; // หันหน้า
+                    pumpkin.position.set(0, 1.5, 3);
+                    scene.add(pumpkin);
+                    if (!introShown) {
+                        showIntroMessage();
+                        introShown = true;
+                    }
+                },
+                undefined,
+                err => console.error(err)
+            );
+
+            animate();
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (bat) {
+                angle += speed;
+                bat.position.x = Math.cos(angle) * radius;
+                bat.position.z = Math.sin(angle) * radius;
+                bat.position.y = 2 + Math.sin(angle * 2) * 0.3;
+                bat.rotation.y = -angle + Math.PI / 2;
+            }
+
+            if (pumpkin && !pumpkinClicked) {
+                pumpkin.position.y = 1.5 + Math.sin(Date.now() * 0.002) * 0.1;
+            }
+
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        // TYPEWRITER EFFECT
+        function showIntroMessage() {
+            const text = "You see that pumpkin‑headed girl over there? That's me. Click here!";
+            const el = document.getElementById('introMessage');
+            el.textContent = '';
+            el.style.display = 'block';
+            let i = 0;
+            function typeChar() {
+                if (i < text.length) {
+                    el.textContent += text.charAt(i++);
+                    setTimeout(typeChar, 40);
+                }
+            }
+            typeChar();
+        }
+
+        function onIntroClick() {
+            document.getElementById('introMessage').style.display = 'none';
+            zoomToPumpkin();
+        }
+
+        function zoomToPumpkin() {
+            const targetPosition = new THREE.Vector3(0, 2, 6);  // <<< ซูมห่างจาก pumpkin นิดนึง
+            const lookAtTarget = new THREE.Vector3(0, 1.5, 3);  // <<< จุดที่กล้องจะมองไป (ตำแหน่งฟักทอง)
+
+            const start = camera.position.clone();
+            const duration = 1000;
+            const startTime = performance.now();
+
+            function animateZoom(time) {
+                const t = Math.min((time - startTime) / duration, 1);
+                camera.position.lerpVectors(start, targetPosition, t);
+                camera.lookAt(lookAtTarget);
+                renderer.render(scene, camera);
+                if (t < 1) {
+                    requestAnimationFrame(animateZoom);
+                } else {
+                    showTypingText("Hi!", "uiText", () => {
+                        showTypingText("Do you want to know who I am?", "nextText", () => {
+                            document.getElementById("choiceButtons").style.display = "block";
+                        });
+                    });
+                }
+            }
+
+            requestAnimationFrame(animateZoom);
+        }
+
+        function showTypingText(text, elementId, callback) {
+            const el = document.getElementById(elementId);
+            el.textContent = '';
+            el.style.display = 'block';
+            let i = 0;
+            function typeIt() {
+                if (i < text.length) {
+                    el.textContent += text.charAt(i++);
+                    setTimeout(typeIt, 60);
+                } else if (callback) {
+                    callback();
+                }
+            }
+            typeIt();
+        }
+
+        function goToScene2() {
+            while (scene.children.length) scene.remove(scene.children[0]);
+            document.getElementById('uiText').style.display = 'none';
+            document.getElementById('nextText').style.display = 'none';
+            document.getElementById('choiceButtons').style.display = 'none';
+            currentScene = 2;
+
+            const ambient = new THREE.AmbientLight(0xffffff, 2);
+            scene.add(ambient);
+            const spot = new THREE.SpotLight(0xffffff, 4);
+            spot.position.set(2, 5, 5);
+            spot.angle = Math.PI / 4;
+            spot.penumbra = 0.2;
+            spot.castShadow = true;
+            scene.add(spot);
+
+            // โหลดโมเดลหน้า 2
+            loader.load('https://raw.githubusercontent.com/Mew-chananchida/Portflio/refs/heads/main/2.glb', (gltf) => {
+                const model = gltf.scene;
+                model.position.set(0, 0, 0);
+                model.scale.set(1, 1, 1);
+                scene.add(model);
+                // แสดงข้อความ Click Here
+                document.getElementById('clickHere').style.display = 'block';
+            });
+        }
+
+        // โหลดโมเดลชื่อและภาพ
+        function loadNameModel() {
+            document.getElementById('clickHere').style.display = 'none';
+
+            loader.load('https://raw.githubusercontent.com/Mew-chananchida/Portflio/refs/heads/main/ชื่อ.glb', (gltf) => {
+                const model = gltf.scene;
+                model.position.set(0, 0, 0);
+                model.scale.set(1.2, 1.2, 1.2);
+                scene.add(model);
+
+                // เพิ่ม SpotLight เพื่อส่องชื่อ
+                const nameLight = new THREE.SpotLight(0xffffff, 3);
+                nameLight.position.set(-3, 7, 5);  // ยกขึ้นสูงและเลื่อนไปทางซ้าย
+                nameLight.angle = Math.PI / 6;
+                nameLight.penumbra = 0.3;
+                nameLight.target = model;
+                nameLight.castShadow = true;
+
+                scene.add(nameLight);
+                scene.add(nameLight.target);
+            });
+        }
+
+
+        // Responsive
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+
+</html>
